@@ -1,0 +1,31 @@
+﻿@model Activity.Models.Book
+
+@{
+    ViewBag.Title = "Book";
+}
+
+<h2>Book</h2>
+
+<h4>Form</h4>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.LabelFor(m => m.Title)
+    @Html.EditorFor(m => m.Title)
+    @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger" })
+    <br />
+    @Html.LabelFor(m => m.Publisher)
+    @Html.EditorFor(m => m.Publisher)
+    @Html.ValidationMessageFor(m => m.Publisher, "", new { @class = "text-danger" })
+    <br />
+    <button type="submit">Save</button>
+}
+
+<hr />
+
+@if (ViewBag.Book != null)
+{
+    <h4>Data</h4>
+    <p>Title: @ViewBag.Book.Title</p>
+    <p>Publisher: @ViewBag.Book.Publisher</p>
+}
