@@ -1,0 +1,176 @@
+﻿@model IEnumerable<Activity.Models.User>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Email)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Status)
+        </th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr id="row_@item.Id">
+            <td id="name_@item.Id">
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td id="email_@item.Id">
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @*@Html.DisplayFor(modelItem => item.Status)*@
+                @Html.CheckBox("chk", item.Status, new { @class = "status", @rel = @item.Id })
+            </td>
+            <td>
+                @if (item.Status)
+                {
+                    <span id="status_@item.Id" class="text-success" style="font-weight: bold">Active</span>
+                }
+                else
+                {
+                    <span id="status_@item.Id" class="text-danger" style="font-weight: bold">Inactive</span>
+                }
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id }) |
+                <a class="delete" rel="@item.Id">
+                    <i class="glyphicon glyphicon-trash"></i>
+                </a> |
+                <a onclick="edit(@item.Id)" data-toggle="modal" data-target="#EditModal">
+                    <i class="glyphicon glyphicon-edit"></i>
+                </a>
+            </td>
+        </tr>
+    }
+
+</table>
+
+<div id="EditModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Edit User</h4>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit_id" />
+                <div class="form-group">
+                    <label class="control-label col-md-2">Name</label>
+                    <div class="col-md-10">
+                        <input type="text" id="edit_name" class="form-control" />
+                    </div>
+                </div><br /><br />
+                <div class="form-group">
+                    <label class="control-label col-md-2">Email</label>
+                    <div class="col-md-10">
+                        <input type="text" id="edit_email" class="form-control" />
+                    </div>
+                </div><br /><br />
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <span id="errorMsg" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary pull-right" id="save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Scripts.Render("~/bundles/jquery")
+<script>
+    $(".status").click(function () {
+        var id = $(this).attr("rel");
+        $.ajax({
+            dataType: "json",
+            type: "POST",
+            url: "/Users/ChangeStatus",
+            data: { id },
+            success: function (data) {
+                if (data == "t") {
+                    $(this).removeAttr("disabled");
+                    $("#status_" + id).removeClass();
+                    $("#status_" + id).addClass("text-success");
+                    $("#status_" + id).text("Active");
+                }
+                else if (data == "f") {
+                    $(this).attr("disabled", "disabled");
+                    $("#status_" + id).removeClass();
+                    $("#status_" + id).addClass("text-danger");
+                    $("#status_" + id).text("Inactive");
+                } else {
+                    console.log("An error has occurred.");
+                }
+            }
+        });
+    });
+</script>
+
+<script>
+    $(".delete").click(function () {
+        var id = $(this).attr("rel");
+        $.ajax({
+            dataType: "json",
+            type: "POST",
+            url: "/Users/DeleteUser",
+            data: { id },
+            success: function (data) {
+                if (data == "ok") {
+                    var row = $("#row_" + id);
+                    row.remove();
+                }
+                else {
+                    console.log("An error has occurred.");
+                }
+            }
+        });
+    });
+</script>
+
+<script>
+    function edit(id) {
+        $("#edit_id").val(id);
+        $("#edit_name").val($("#name_" + id).text().trim());
+        $("#edit_email").val($("#email_" + id).text().trim());
+        $("#errorMsg").text("");
+    }
+    $("#save").click(function () {
+        var id = $("#edit_id").val();
+        var name = $("#edit_name").val();
+        var email = $("#edit_email").val();
+        $.ajax({
+            dataType: "json",
+            type: "POST",
+            url: "/Users/EditUser",
+            data: { id, name, email },
+            success: function (data) {
+                if (data == "ok") {
+                    $("#name_" + id).text(name);
+                    $("#email_" + id).text(email);
+                    $('#EditModal').modal("toggle");
+                } else {
+                    $("#errorMsg").text("User not found or invalid values entered.");
+                }
+            }
+        });
+    });
+</script>
