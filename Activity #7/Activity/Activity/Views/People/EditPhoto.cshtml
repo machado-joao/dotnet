@@ -1,0 +1,74 @@
+﻿@model Activity.Models.Person
+
+@{
+    ViewBag.Title = "Edit Photo";
+}
+
+<h2>Edit Photo</h2>
+
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.Photo)
+<div>
+    <div id="main-cropper"></div>
+    <a class="btn actionSelect">
+        <input type="file" id="select" value="Choose image" accept="image/*">
+    </a>
+    <a href="#" class="btn btn-primary actionUpload">Upload</a>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css" />
+
+<style>
+    .croppie-container {
+        width: 100%;
+        height: 80%;
+    }
+</style>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <script>
+    var basic = $('#main-cropper').croppie({
+        viewport: { width: 250, height: 320 },
+        boundary: { width: 300, height: 370 },
+        showZoomer: true,
+        url: '/Uploads/@Model.Photo?@DateTime.Now.ToString("yyyyMMddHHmmssfff")',
+        format: 'jpeg'|'png'|'webp'
+    });
+    function readFile(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#main-cropper').croppie('bind', {
+                    url: e.target.result
+                });
+            }
+        reader.readAsDataURL(input.files[0]);
+        }
+    }
+    $('.actionSelect input').on('change', function () { readFile(this); });
+    $('.actionUpload').on('click', function() {
+        basic.croppie('result','blob').then(function(blob) {
+            var formData = new FormData();
+            formData.append('id', @Model.Id);
+            formData.append('image', blob);
+            var MyAppUrlSettings = {
+                MyUsefulUrl: '@Url.Action("SavePhoto","People")'
+            }
+            var request = new XMLHttpRequest();
+            request.open('POST', MyAppUrlSettings.MyUsefulUrl);
+            request.send(formData);
+            request.onreadystatechange = function () {
+                if (request.readyState < 4) {
+                    console.log('Loading...');
+                }
+                else if (request.readyState === 4) {
+                    if (request.status == 200 && request.status < 300) {
+                        window.location.href = '/People/Index/';
+                    }
+                }
+            }
+        });
+    });
+    </script>
+}

@@ -1,0 +1,42 @@
+﻿@model IEnumerable<Activity.Models.Album>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+
+@{string name = ""; int count = 0; }
+@foreach (var item in Model)
+{
+    if (name != item.Person.Name)
+    {
+        if (!name.IsEmpty())
+        {
+            @Html.Raw("</div></div>");
+            count = 0;
+        }
+        @Html.Raw("<div class='row'>");
+        <h3>@item.Person.Name</h3>
+    }
+    if (count % 4 == 0)
+    {
+        if (count != 0)
+        {
+            @Html.Raw("</div>");
+        }
+        @Html.Raw("<div class='row'>");
+    }
+    <div class="col-xs-6 col-md-3">
+        <a href="#" class="thumbnail">
+            <img src="~/Uploads/@item.Photo" alt="Photo">
+        </a>
+        <a href="@Url.Action("Delete", "Albums", new { id = item.Id })">Delete</a>
+    </div>
+    name = item.Person.Name;
+    count++;
+}

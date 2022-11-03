@@ -24,6 +24,7 @@ namespace Activity.Models
             user.Property(x => x.Name).HasColumnName("USER_NAME");
             user.Property(x => x.Email).HasColumnName("USER_EMAIL");
             user.Property(x => x.Password).HasColumnName("USER_PASSWORD");
+            user.Property(x => x.Hash).HasColumnName("USER_HASH");
 
             var profile = mb.Entity<Profile>();
             profile.ToTable("PROFILES");

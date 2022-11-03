@@ -21,6 +21,8 @@ namespace Activity.Models
 
         public string Password { get; set; }
 
+        public string Hash { get; set; }
+
         public virtual ICollection<UserProfile> UserProfile { get; set; }
     }
 }

@@ -23,6 +23,7 @@
                 <ul class="nav navbar-nav">
                     <li>@Html.ActionLink("Home", "Index", "Home")</li>
                     <li>@Html.ActionLink("Authorize", "TestAuthorize", "Home")</li>
+                    <li>@Html.ActionLink("Change Password", "ForgotPassword", "Home")</li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     @if (User.Identity.IsAuthenticated)
@@ -43,9 +44,36 @@
     <div class="container body-content">
         @RenderBody()
     </div>
+    @if (TempData["MSG"] != null)
+    {
+        <script>
+            $(document).ready(function ()
+            {
+                var title = "";
+                switch ("@TempData["MSG"].ToString().Split('|')[0]") {
+                    case "success":
+                        title = "Success!";
+                        break;
+                    case "warning":
+                        title = "Warning!";
+                        break;
+                    case "error":
+                        title = "Error";
+                        break;
+                    case "info":
+                        title = "Info";
+                        break;
+                }
+                swal(title, "@Html.Raw(TempData["MSG"].ToString().Split('|')[1])", "@TempData["MSG"].ToString().Split('|')[0]");
+            });
+        </script>
+    }
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script src="https://cdn.tiny.cloud/1/no-apikey/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>tinymce.init({ selector: 'textarea' });</script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

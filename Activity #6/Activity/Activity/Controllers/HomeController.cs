@@ -2,7 +2,9 @@
 using Activity.Utils;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
@@ -93,6 +95,85 @@ namespace Activity.Controllers
         {
             FormsAuthentication.SignOut();
             return RedirectToAction("Index");
+        }
+
+        public ActionResult Email()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateInput(false)]
+        public ActionResult Email(Message message)
+        {
+            if (ModelState.IsValid)
+            {
+                TempData["MSG"] = Functions.SendEmail(message.Email, message.Subject, message.Body);
+            }
+            else
+            {
+                TempData["MSG"] = "warning|Fill all fields!";
+            }
+            return View(message);
+        }
+
+        public ActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ForgotPassword(ForgotPassword forgotPassword)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = context.User.Where(x => x.Email == forgotPassword.Email).ToList().FirstOrDefault();
+                if (user != null)
+                {
+                    user.Hash = Functions.Encode(DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss.ffff"));
+                    context.Entry(user).State = EntityState.Modified;
+                    context.SaveChanges();
+
+                    StringBuilder message = new StringBuilder();
+                    message.Append("<h3>System</h3>");
+                    message.Append("Change your password by ");
+                    message.Append("<a href='http://localhost:54305/Home/ChangePassword/");
+                    message.Append(user.Hash).Append("' target='_blank'>clicking here</a>");
+
+                    Functions.SendEmail(user.Email, "Password change", message.ToString());
+                    TempData["MSG"] = "success|Email sent. Please, verify your inbox.";
+                    return RedirectToAction("Index");
+                }
+                TempData["MSG"] = "error|Email not found!";
+                return View();
+            }
+            TempData["MSG"] = "warning|Fill all fields!";
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ChangePassword(ChangePassword changePassword)
+        {
+            if (ModelState.IsValid)
+            {
+                Context db = new Context();
+                var user = db.User.Where(x => x.Hash == changePassword.Hash).ToList().FirstOrDefault();
+                if (user != null)
+                {
+                    user.Hash = null;
+                    user.Password = Functions.HashText(changePassword.Password, "SHA512");
+                    db.Entry(user).State = EntityState.Modified;
+                    db.SaveChanges();
+                    TempData["MSG"] = "success|Your password was changed!";
+                    return RedirectToAction("Index");
+                }
+                TempData["MSG"] = "error|Email not found!";
+                return View(changePassword);
+            }
+            TempData["MSG"] = "warning|Fill all fields!";
+            return View(changePassword);
         }
     }
 }
